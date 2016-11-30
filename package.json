@@ -1,0 +1,33 @@
+{
+  "name": "beamzer-client",
+  "version": "0.0.1",
+  "description": "This wrapper script makes use of the JS polyfill for Server Sent Events OR Server Push",
+  "main": "src/beamzer-client.js",
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "matchdep": "^1.0.1"
+  },
+  "scripts": {
+     "test": "",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isocroft/beamzer-client.git"
+  },
+  "keywords": [
+    "Markdown",
+    "JavaScript",
+    "Widget"
+  ],
+  "author": "Ifeora Okechukwu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/isocroft/beamzer-client/issues"
+  },
+  "homepage": "https://github.com/isocroft/beamzer-client#readme"
+}

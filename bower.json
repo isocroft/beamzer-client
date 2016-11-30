@@ -1,0 +1,23 @@
+{
+  "name": "beamzer-client",
+  "description": "This wrapper script makes use of the JS polyfill for Server Sent Events OR Server Push",
+  "main": "dist/beamzer-client.min.js",
+  "authors": [
+    "Ifeora Okechukwu"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "marked": "*"
+  },
+  "keywords": [
+    "Server Sent Events",
+    "Push Notifications",
+    "Polyfill"
+  ],
+  "homepage": "",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "tests"
+  ]
+}
