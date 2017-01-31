@@ -763,6 +763,22 @@
             var proxyObserverList = {};
 
             function addGlobalHandler(object){
+                var _wrap = function(callable){
+                    return function(e, url){
+                        if(e.target.readyState === EventSource.CLOSED){
+                            if(typeof this.close == "function"){
+                                //this.close();
+                                if(console){
+                                    console.log("Stream Closed!");
+                                }
+                            }
+                        }else if(e.target.readyState === EventSource.CONNECTING){
+                                if(console){
+                                    console.log("Stream Connecting...");
+                                }
+                        }
+                    }
+                }
                // adding events and their handlers from the global map only
                 _each(object, function(handler, event){
                       var prefix = '', _event;
@@ -776,7 +792,7 @@
                       _event = prefix + event;
                       if(!hasOWnProp.call(eventsMap, _event)){
                           if(typeof handler == "function"){
-                             eventsMap[_event] = handler;
+                             eventsMap[_event] = _wrap(handler);
                           }  
                       } 
                 });        
