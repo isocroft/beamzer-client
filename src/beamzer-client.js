@@ -683,9 +683,9 @@
   }
 
   // UMD
-  if(module !== undefined && (!!module.exports)){
+  if(typeof module != 'undefined' && (!!module.exports)){
        module.exports = factory();
-  }else if(define !== undefined && (!!define.amd)){
+  }else if(typeof define != 'undefined' && (!!define.amd)){
        define("BeamzerClient", factory);
   }else if(global !== undefined && (global.window === global)){
        global.BeamzerClient = factory(global); 
@@ -968,7 +968,7 @@
               }
           } 
 
-          connections[url] = connection; // @TODO check cyclic referencing here later...
+          connections[url] = connection; // @TODO check if cyclic referencing exists here later...
           // enforce new 
           return (this === win)? new Clients(settings, forceNew): this;
       },
