@@ -117,7 +117,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
   var module = angular.module("TheAppServices");
 
-  angular.factory("$sessionStorage", ['$window', function($window){
+  module.factory("$sessionStorage", ['$window', function($window){
       var data = null, keys = {};
 
       function setData(){
