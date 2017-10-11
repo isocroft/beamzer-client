@@ -20,11 +20,11 @@ This is a wrapper script and libarary which makes use of the JS polyfill for _Se
                     params:{
                         id:"id"
                     },
-                    options:{loggingEnabled:true, interval:4500}
+                    options:{loggingEnabled:true, interval:4500,crossdomain:true}
                });
 
                // open a connection with relevant callbacks
-               beam.open(function onopenCalback(e){ }, function onerrorCalback(e){ }, function onmessageCalback(e){ });
+               beam.start(function onopenCalback(e){ }, function onerrorCalback(e){ }, function onmessageCalback(e){ });
                // register an event [update]
                beam.on("update", function(e){ });
                // register another event [noupdate]
@@ -34,7 +34,7 @@ This is a wrapper script and libarary which makes use of the JS polyfill for _Se
                // unregister an event [update]
                beam.off("update");
                // close all the connection(s)
-               beam.close(function(e){ });
+               beam.stop(function(e){ });
 		    </script>
 	   </body>
   </html>
@@ -80,7 +80,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
                   options:{loggingEnabled:true, interval:4500}
                });  
  
-               CLIENT.open(openCallback, errorCallback, msgCallback); 
+               CLIENT.start(openCallback, errorCallback, msgCallback); 
 
                started = true;           
             },
@@ -99,7 +99,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
             },
             end:function(closeCallback){
                 
-               CLIENT.close(closeCallback);
+               CLIENT.stop(closeCallback);
             },
             isStarted:function(){
 
@@ -370,6 +370,12 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 	
 	worker.addEventListener("message", (event) => {
 		let data = event.data;
+		if(data.streamClosed){
+			setTimeout(function() => {
+				worker.terminate();
+			},0);
+			return;
+		}
 		console.log(JSON.stringify({data}));
 	}, false);
 	
@@ -377,7 +383,6 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 	
 	setTimeout(() => {
 		worker.postMessage({stop:true});
-		worker.terminate();
 	}, 8900);
 	
 	// push-notifs.js file
@@ -408,8 +413,10 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 		
 		if(event.data.stop === true){
 			if(beam !== null){
-				beam.close();
-				beam = null; // reclaim memory
+				beam.close((e) => {
+					globale.postMessage({streamClosed:true});
+					beam = null; // reclaim memory
+				});
 			}
 		}
 	}, false);
