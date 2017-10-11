@@ -50,6 +50,7 @@
             xhrHeaders:{
                 'Accept': 'text/event-stream',
                 'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
                 'X-Requested-With': 'XMLHttpRequest'
             }
         },
@@ -614,12 +615,12 @@
     function isOldIE () {
 
         //return true if we are in IE8 or IE9
-        return (window.XDomainRequest && (window.XMLHttpRequest && new XMLHttpRequest().responseType === undefined)) ? true : false;
+        return (global.XDomainRequest && (global.XMLHttpRequest && new global.XMLHttpRequest().responseType === undefined)) ? true : false;
     }
 
     global[evsImportName] = EventSource;
     
-})(this);
+})((this || self));
 
 
 /**
@@ -647,10 +648,10 @@
                 options:{loggingEnabled:true, interval:4500}
  *         });
  *
- *         beam.open(function(e){ }, function(e){ }, function(e){ });
+ *         beam.open(function onOpen(e){ }, onfunction onError(e){ }, function onMessage(e){ });
  *         beam.on("update", function(e){ });
  *         beam.on("noupdate", function(e){ });
- *         beam.new_client({source:"http://www.example.com/beamrays",params:{},options:{}});
+ *         beam.newClient({source:"http://www.example.com/beamrays",params:{},options:{}});
  *         beam.off("update");
  *         beam.close(function(e){ });
  *         
@@ -691,7 +692,7 @@
        global.BeamzerClient = factory(global); 
   }
 
-}(this, function(win){
+}((this || self), function(win){
 
       // load the shim so it polyfills as "EventSource" on the global object
       // for browsers that don't natively support "EventSource" constructor
@@ -713,7 +714,7 @@
 
       hasOWnProp = _obj.hasOwnProperty,
 
-      doc = win.document,
+     /* doc = win.document, */
 
       loc = win.location,
 
@@ -768,13 +769,13 @@
                         if(e.target.readyState === EventSource.CLOSED){
                             if(typeof this.close == "function"){
                                 //this.close();
-                                if(console){
-                                    console.log("Stream Closed!");
+                                if(win.console){
+                                    win.console.log("Stream Closed!");
                                 }
                             }
                         }else if(e.target.readyState === EventSource.CONNECTING){
-                                if(console){
-                                    console.log("Stream Connecting...");
+                                if(win.console){
+                                    win.console.log("Stream Connecting...");
                                 }
                         }
                     }
@@ -1021,7 +1022,7 @@
                     off:function(event){
                        _clientsObject.off(event);
                     },
-                    new_client:function(settings){
+                    newClient:function(settings){
                          forceNew = (typeof(settings.params) == "object" && !_isEmpty(settings.params));
                         _makeClients(settings, forceNew);
                     },
