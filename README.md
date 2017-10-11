@@ -368,7 +368,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
 	const worker = new Worker("./push-notifs.js");
 	
-	worker.addeventListener("message", (event) => {
+	worker.addEventListener("message", (event) => {
 		let data = event.data;
 		console.log(JSON.stringify({data}));
 	}, false);
@@ -409,6 +409,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 		if(event.data.stop === true){
 			if(beam !== null){
 				beam.close();
+				beam = null; // reclaim memory
 			}
 		}
 	}, false);
@@ -417,7 +418,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
 ## Support
 
-Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 7 / 8 / 9). Then you can check out [https://github.com/calvinmetcalf/web-worker](this polyfill library) 
+Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 7 / 8 / 9). Then you can check out [this polyfill library](https://github.com/calvinmetcalf/web-worker)
 
 ## Credits
 
