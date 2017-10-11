@@ -1,6 +1,6 @@
-﻿# BeamzerClient
+# BeamzerClient
 
-This This wrapper script makes use of the JS polyfill for Server-Sent Events located at https://github.com/amvtek/EventSource/ and makes it easy to manage several connections to *push notification* sources.
+This is a wrapper script and libarary which makes use of the JS polyfill for _Server-Sent Events_ located at https://github.com/amvtek/EventSource/ and makes it easy to manage several connections to *push notification* or *event* sources. This library can also be used inside *Web Workers* (Dedicated or Shared workers)
 
 ## Usage
  
@@ -30,7 +30,7 @@ This This wrapper script makes use of the JS polyfill for Server-Sent Events loc
                // register another event [noupdate]
                beam.on("noupdate", function(e){ });
                // recreate a connection. 
-               beam.new_client({source:"http://www.example.com/beamrays",params:{},options:{}});
+               beam.newClient({source:"http://www.example.com/beamrays",params:{},options:{}});
                // unregister an event [update]
                beam.off("update");
                // close all the connection(s)
@@ -95,7 +95,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
             },
             newConnection:function(settings){
 
-               CLIENT.new_client(settings);
+               CLIENT.newClient(settings);
             },
             end:function(closeCallback){
                 
@@ -359,6 +359,59 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
  echo $payload;
 
  exit;
+
+```
+
+### Web Worker example
+
+```js
+
+	const worker = new Worker("./push-notifs.js");
+	
+	worker.addeventListener("message", (event) => {
+		let data = event.data;
+		console.log(JSON.stringify({data}));
+	}, false);
+	
+	worker.postMessage({start:true});
+	
+	setTiemout(() => {
+		worker.postMessage({stop:true});
+		worker.terminate();
+	}, 8900);
+	
+	// push-notifs.js file
+	
+	importScripts("./path/to/beamzer-client.min.js");
+	
+	let globale = self, beam = null;
+	
+	addEventListener("message", (event) => {
+		if(event.data.start === true){
+			beam = new BeamzerClient({
+				source:"https://stream.stock-details.com",
+				options:{interval:4500}
+			});
+
+			beam.open((e) => {
+				globale.postMessage({streamOpened:true});
+			},
+
+			(e) => {
+				globale.postMessage({streamMalfunction:true});
+			});
+			
+			beam.on("notification", (e) => {
+				globale.postMessage({streamData:e.data});
+			});
+		}
+		
+		if(event.data.stop === true){
+			if(beam !== null){
+				beam.close();
+			}
+		}
+	}, false);
 
 ```
 
