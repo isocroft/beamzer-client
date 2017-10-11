@@ -648,12 +648,12 @@
                 options:{loggingEnabled:true, interval:4500}
  *         });
  *
- *         beam.open(function onOpen(e){ }, onfunction onError(e){ }, function onMessage(e){ });
+ *         beam.start(function onOpen(e){ }, onfunction onError(e){ }, function onMessage(e){ });
  *         beam.on("update", function(e){ });
  *         beam.on("noupdate", function(e){ });
  *         beam.newClient({source:"http://www.example.com/beamrays",params:{},options:{}});
  *         beam.off("update");
- *         beam.close(function(e){ });
+ *         beam.stop(function(e){ });
  *         
  */
  
