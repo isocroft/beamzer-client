@@ -930,15 +930,15 @@
            return true;
       }, 
 
-      _objectToQuery = function(object){
-          var query = "?";
+      _objectToQuery = function(object, _url, _prefix){
+          var query = _url.indexOf("?") == -1 ? "?" : "";
           if(!object){
              return "";
           }
           _each(object, function(qval, qkey){
-              query += encodeURIComponent(qkey) + "=" + encodeURIComponent(qval) + "&";
+              query += (_prefix + encodeURIComponent(qkey)) + "=" + encodeURIComponent(qval) + "&";
           });
-          return (query.length == 1)? "" : (query.replace(/\&$/, ''));
+          return _url + (query.length == 1)? "" : (query.replace(/\&$/, ''));
       },
 
       Clients = function (settings, forceNew){
@@ -952,9 +952,18 @@
           }
 
           if(!_isShim){
-               url = (url+_objectToQuery(params));
+               url = _objectToQuery(params, url, "");
           }else{
                options.getArgs = params;
+          }
+        
+          if(String(options.headers) == "[object Object]"){
+               url = _objectToQuery(options.headers, url, ":");
+          }
+        
+          if(options.crossdomain === true){
+              options.withCredentials = options.crossdomain;
+              delete options.crossdomain;
           }
 
           if(!hasOWnProp.call(connections, url)){
@@ -1003,13 +1012,19 @@
 
       function BeamzerClient(settings){
 
+           if(!settings){
+              settings = {};
+           }
+        
+           this.url = settings.source || "";
+        
            _makeClients(settings);
 
            if(_instance === null){
                // Singleton
                _instance = {
                     constructor:BeamzerClient,
-                    open:function(openCallback, errorCallback, msgCallback){
+                    start:function(openCallback, errorCallback, msgCallback){
                         _clientsObject.on({'open':openCallback,'error':errorCallback,'message':msgCallback});
                     },
                     on:function(event, callback){
@@ -1026,7 +1041,7 @@
                          forceNew = (typeof(settings.params) == "object" && !_isEmpty(settings.params));
                         _makeClients(settings, forceNew);
                     },
-                    close:function(callback){
+                    stop:function(callback){
                          _clientsObject.disconnect(callback);
                     }
                }
