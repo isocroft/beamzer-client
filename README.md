@@ -15,7 +15,7 @@ This is a wrapper script and libarary which makes use of the JS polyfill for _Se
 	   </head>
 	   <body class="screen">
 	      <script type="text/javascript">
-		           var beam = new BeamzerClient({
+	   	var beam = new BeamzerClient({
                     source:"http://www.example.com/beamrays",
                     params:{
                         id:"id"
@@ -375,7 +375,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 	
 	worker.postMessage({start:true});
 	
-	setTiemout(() => {
+	setTimeout(() => {
 		worker.postMessage({stop:true});
 		worker.terminate();
 	}, 8900);
@@ -417,7 +417,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
 ## Support
 
-Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. 
+Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 7 / 8 / 9). Then you can check out [https://github.com/calvinmetcalf/web-worker](this polyfill library) 
 
 ## Credits
 
