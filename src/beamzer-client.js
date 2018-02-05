@@ -726,7 +726,7 @@
                 properly recognize "functions" because
                 it sees them as "objects" 
  
-                e.g. f**kin' IE 8!
+                e.g. fr**kin' stupid IE 8!
              */
              var timeout = w.setTimeout.apply(w, _noop);
           }catch(ex){ return true; }
@@ -736,7 +736,7 @@
 
       regexFunction = /^function (.+(?=\())/i,
 
-      _origin = loc.origin || (loc.protocol + '//' +  loc.host + (loc.port || "") + '/');
+      _origin = loc.origin || (loc.protocol + '//' +  loc.host + (loc.port || "") + '/'),
 
       open_or_error = /^(?:on|)?(?:open|error)/i, 
 
