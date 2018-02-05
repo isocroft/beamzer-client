@@ -438,7 +438,7 @@ While you implement **beamzer-client**, there are afew things to watch out for.
 
 ## Support
 
-Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 7 / 8 / 9). Then you can check out [this polyfill library](https://github.com/calvinmetcalf/web-worker)
+Available on all major browsers including IE8 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 8 / 9). Then you can check out [this polyfill library](https://github.com/calvinmetcalf/web-worker)
 
 ## Credits
 
