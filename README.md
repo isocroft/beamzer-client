@@ -423,6 +423,19 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
 ```
 
+### Helper Hints
+
+While you implement **beamzer-client**, there are afew things to watch out for.
+
+1. If users create multiple tabs for your beamzer-enabled web app, they will invariably be creating multiple connection to your server.
+   So, you might want to consider disconnecting from the server, whenever a user minimizes the window where your web app is loaded or 	
+   switches from the tab where your web app is loaded. Use the page-visiblity JavaScript API or `document.hasFocus()`. Thankfully, 
+   there's this JavaScript Library called [Idle.js](https://github.com/shawnmclean/Idle.js/) for watching the users' every move and it's 
+   easy to setup and use and i very much recommend it. 
+
+2. Use `localStorage` "storage" events to update event-source data across all non-active tabs. Watch out for Edge though (you may have 
+   to use cookie polling as a fall back) as it lacks support for cross-tab "storage" events. I think it should be fixed by Edge 16+ 
+
 ## Support
 
 Available on all major browsers including IE7 - If you discover any bugs, please log an issue for it and i'll surely get look into it. If you wish to provide fallback support for web workers in Old IE (IE 7 / 8 / 9). Then you can check out [this polyfill library](https://github.com/calvinmetcalf/web-worker)
