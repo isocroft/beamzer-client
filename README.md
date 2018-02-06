@@ -350,8 +350,9 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
  sleep(5); // simulate real prod server activity e.g. database read operation 
 
  $data = array('status' => 'OK');
- $payload = "event: update \n";
- $payload .= "id: 5RWF637yh9983az021mn \n";
+ 
+ $payload = "id: 5RWF637yh9983az021mn \n";
+ $payload .= "event: update \n";
  $payload .= "data: " . json_encode($data) . " \n\n"; // the last line must end with 2 line feed characters
 
  header('Content-Type: text/event-stream');
@@ -442,4 +443,4 @@ Available on all major browsers including IE8 - If you discover any bugs, please
 
 ## Credits
 
-.
+@isocroft.
