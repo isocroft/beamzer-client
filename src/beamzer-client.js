@@ -707,6 +707,8 @@
       _noop = function(){},
 
       _func_obj = "[object Function]",
+          
+      _obj_obj = "[object Object]",
 
       _oops = [''],
 
@@ -736,11 +738,11 @@
 
       regexFunction = /^function (.+(?=\())/i,
 
-      _origin = loc.origin || (loc.protocol + '//' +  loc.host + (loc.port || "") + '/'),
+      _origin = (loc.origin + '/') || (loc.protocol + '//' +  loc.host + (loc.port || "") + '/'),
 
       open_or_error = /^(?:on|)?(?:open|error)/i, 
 
-      rgx_url = /^https?\:\/\/(?:([\w]+?)\.){1,3}(?:com|au|co\.uk|org|net|gov|io|me|co\.za)\/?/,
+      rgx_url = /^https?\:\/\/(?:([\w]+?)\.){1,2}(?:com|org|co\.uk|co|ca|co\.za|net|ng|com\.ng|gov|mil|biz|info|io|me|ng|mobi|name|edu|nti|aero|jobs|museumco\.za)\/?/,
 
       _clientsObject = null,
 
@@ -769,6 +771,7 @@
                         if(e.target.readyState === EventSource.CLOSED){
                             if(typeof this.close == "function"){
                                 //this.close();
+                                callable.apply(null, [e, url]);
                                 if(win.console){
                                     win.console.log("Stream Closed!");
                                 }
@@ -777,9 +780,10 @@
                                 if(win.console){
                                     win.console.log("Stream Connecting...");
                                 }
+                                callable.apply(null, [e, url]);
                         }
                     }
-                }
+                },
                // adding events and their handlers from the global map only
                 _each(object, function(handler, event){
                       var prefix = '', _event;
@@ -808,7 +812,7 @@
 
             function readyProxyObserver(event, url, noCall){
                  var proxy;
-                 if(!hasOWnProp.call(proxyList, url)){
+                 if(!hasOWnProp.call(proxyObserverList, url)){
                      proxyObserverList[url] = {
                            events:[],
                            callback:function(e){
@@ -831,9 +835,9 @@
             }
 
             function getProxy(url){
-                if(hasOWnProp.call(proxyList, url)){
+                if(hasOWnProp.call(proxyObserverList, url)){
                    
-                    return proxyList[url];
+                    return proxyObserverList[url];
                 }
                 return null;
             }
@@ -936,7 +940,7 @@
              return "";
           }
           _each(object, function(qval, qkey){
-              query += (_prefix + encodeURIComponent(qkey)) + "=" + encodeURIComponent(qval) + "&";
+              query += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(qval) + "&";
           });
           return _url + (query.length == 1)? "" : (query.replace(/\&$/, ''));
       },
@@ -957,7 +961,7 @@
                options.getArgs = params;
           }
         
-          if(String(options.headers) == "[object Object]"){
+          if(String(options.headers) == _obj_obj){
                url = _objectToQuery(options.headers, url, ":");
           }
         
@@ -1006,7 +1010,7 @@
       }
 
       Clients.prototype.off = function(event){
-           evt = event || '';
+           var evt = event || '';
            EventsRegistry.removeGlobalHandler(evt);
       }
 
