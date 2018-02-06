@@ -766,6 +766,7 @@
             var proxyObserverList = {};
 
             function addGlobalHandler(object){
+              
                 var _wrap = function(callable){
                     return function(e, url){
                         if(e.target.readyState === EventSource.CLOSED){
@@ -777,15 +778,16 @@
                                 }
                             }
                         }else if(e.target.readyState === EventSource.CONNECTING){
-                                if(win.console){
+                                if(!!win.console){
                                     win.console.log("Stream Connecting...");
                                 }
                                 callable.apply(null, [e, url]);
                         }
                     }
-                },
+                };
+               
                // adding events and their handlers from the global map only
-                _each(object, function(handler, event){
+                _each(object, function(handler, event){ 
                       var prefix = '', _event;
                       switch(event){
                          case 'open':
