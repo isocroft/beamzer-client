@@ -20,9 +20,10 @@
     "url": "git+https://github.com/isocroft/beamzer-client.git"
   },
   "keywords": [
-    "Markdown",
+    "Event Source",
     "JavaScript",
-    "Widget"
+    "Server Push",
+    "Real Time Notifications"
   ],
   "author": "Ifeora Okechukwu",
   "license": "MIT",
