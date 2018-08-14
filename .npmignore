@@ -1,0 +1,5 @@
+node_modules
+.travis.yml
+beamzer.conf.js
+tests
+*.png
