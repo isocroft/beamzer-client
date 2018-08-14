@@ -24,7 +24,15 @@ This is a wrapper script and libarary which makes use of the JS polyfill for _Se
                });
 
                // open a connection with relevant callbacks
-               beam.start(function onopenCalback(e){ }, function onerrorCalback(e){ }, function onmessageCalback(e){ });
+               beam.start(function onopenCalback(e){
+		      
+		      }, function onerrorCalback(e){ 
+		      	if (e.readyState == EventSource.CLOSED) {
+                    		console.log('Event was closed');
+			}
+		      }, function onmessageCalback(e){
+		      
+		      });
                // register an event [update]
                beam.on("update", function(e){ });
                // register another event [noupdate]
