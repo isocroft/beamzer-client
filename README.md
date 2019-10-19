@@ -376,7 +376,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
  exit;
 
 ```
->This is another simple SSE server script written in Node.js (using [ssenode](https://github.com/iscroft/ssenode))
+>This is another simple SSE server script written in Node.js (using [ssenode](https://github.com/isocroft/ssenode))
 
 ```js
 
@@ -387,14 +387,16 @@ const uuidv4 = require('uuid/v4');
 const exp = require('express');
 
 const app = exp()
-const source = new Suorce(uuidv4);
+const source = new Source(uuidv4);
 
 app.use(EventStream.init(source, { no_id:false }));
 
 app.get('/stream', (req, res) => {
-    source.send({
-        status:'OK'
-    }, null, 'update')
+   setTimeout(() => { // simulate real prod server activity e.g. database read operation
+	    source.send({
+		status:'OK'
+	    }, null, 'update')
+   }, 5000); 
 })
 
 ```
@@ -471,7 +473,7 @@ While you implement **beamzer-client**, there are afew things to watch out for.
    easy to setup and use and i very much recommend it. 
 
 2. Use `localStorage` "storage" events to update event-source data across all non-active tabs. Watch out for Edge though (you may have 
-   to use cookie polling as a fall back) as it lacks support for cross-tab "storage" events. I think it should be fixed by Edge 16+ 
+   to use **cookie polling** as a fall back) as it lacks support for cross-tab "storage" events. I think it should be fixed by Edge 16+ 
 
 ## Support
 
@@ -480,3 +482,7 @@ Available on all major browsers including IE8 - If you discover any bugs, please
 ## Credits
 
 @isocroft.
+
+## Contributing
+
+I welcome all contributions to make this software better. please send an [email](mailto:isocroft@gmail.com) to communicate your thoughts on imporvements and features.
