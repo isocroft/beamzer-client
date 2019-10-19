@@ -2,6 +2,10 @@
 
 This is a wrapper script and libarary which makes use of the JS polyfill for _Server-Sent Events_ located at https://github.com/amvtek/EventSource/ and makes it easy to manage several connections to *push notification* or *event* sources. This library can also be used inside *Web Workers* (Dedicated or Shared workers)
 
+## File Size
+
+- 15.2kb (Minified)
+
 ## Usage
  
 ```html
@@ -11,7 +15,7 @@ This is a wrapper script and libarary which makes use of the JS polyfill for _Se
 	      <meta charest="utf-8">
 		    <title>BeamzerClient - Example</title>
 		  
-		    <script type="text/javascript" src="/path/to/beamzer-client.js"></script>
+		    <script type="text/javascript" src="/path/to/beamzer-client.min.js"></script>
 	   </head>
 	   <body class="screen">
 	      <script type="text/javascript">
@@ -351,6 +355,8 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
  
 ```
 
+>This is a simple SSE server script written in PHP
+
 ```php
 
  # Simple Implementation of event streams on the server - http://www.example.com/streamer.php
@@ -368,6 +374,28 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
  echo $payload;
 
  exit;
+
+```
+>This is another simple SSE server script written in Node.js (using [ssenode](https://github.com/iscroft/ssenode))
+
+```js
+
+// Simple Implementation of event streams on the server - http://www.example.com/stream
+
+const { Source, EventStream } = require('ssenode');
+const uuidv4 = require('uuid/v4');
+const exp = require('express');
+
+const app = exp()
+const source = new Suorce(uuidv4);
+
+app.use(EventStream.init(source, { no_id:false }));
+
+app.get('/stream', (req, res) => {
+    source.send({
+        status:'OK'
+    }, null, 'update')
+})
 
 ```
 
@@ -436,7 +464,7 @@ The idea here is to loosely couple communications to beamzer-client in an Angula
 
 While you implement **beamzer-client**, there are afew things to watch out for.
 
-1. If users create multiple tabs for your beamzer-enabled web app, they will invariably be creating multiple connection to your server.
+1. If users create multiple tabs for your beamzer-enabled web app, they will invariably be creating multiple SSE (EventSource) connection to your server.
    So, you might want to consider disconnecting from the server, whenever a user minimizes the window where your web app is loaded or 	
    switches from the tab where your web app is loaded. Use the page-visiblity JavaScript API or `document.hasFocus()`. Thankfully, 
    there's this JavaScript Library called [Idle.js](https://github.com/shawnmclean/Idle.js/) for watching the users' every move and it's 
