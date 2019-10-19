@@ -615,7 +615,7 @@
     function isOldIE () {
 
         //return true if we are in IE8 or IE9
-        return (global.XDomainRequest && (global.XMLHttpRequest && new global.XMLHttpRequest().responseType === undefined)) ? true : false;
+        return (global.XDomainRequest && (global.XMLHttpRequest && (new global.XMLHttpRequest()).responseType === undefined)) ? true : false;
     }
 
     global[evsImportName] = EventSource;
@@ -643,9 +643,10 @@
  *         var beam = new BeamzerClient({
  *              source:"http://www.example.com/beamrays",
  *              params:{
+ *                  choords:["$x", "$y"],
  *                  id:"id"
  *              },
-                options:{loggingEnabled:true, interval:4500}
+                options:{loggingEnabled:true, crossdomain:true, interval:4500}
  *         });
  *
  *         beam.start(function onOpen(e){ }, onfunction onError(e){ }, function onMessage(e){ });
@@ -706,6 +707,12 @@
 
       _noop = function(){},
 
+      beamzerOrigin = 'https://app.beamzer.co',
+
+      _url_obj = "[object URL]",
+
+      _arr_obj = "[object Array]",
+
       _func_obj = "[object Function]",
           
       _obj_obj = "[object Object]",
@@ -728,7 +735,7 @@
                 properly recognize "functions" because
                 it sees them as "objects" 
  
-                e.g. fr**kin' stupid IE 8!
+                e.g. fr**kin' stupid IE8!
              */
              var timeout = w.setTimeout.apply(w, _noop);
           }catch(ex){ return true; }
@@ -736,13 +743,13 @@
           return false;
       }(win),
 
-      regexFunction = /^function (.+(?=\())/i,
+      regexFunctionName = /^function(?:[\s]*)(.+(?=\())/i,
 
       _origin = (loc.origin + '/') || (loc.protocol + '//' +  loc.host + (loc.port || "") + '/'),
 
       open_or_error = /^(?:on|)?(?:open|error)/i, 
 
-      rgx_url = /^https?\:\/\/(?:([\w]+?)\.){1,2}(?:com|org|co\.uk|co|ca|co\.za|net|ng|com\.ng|gov|mil|biz|info|io|me|ng|mobi|name|edu|nti|aero|jobs|museumco\.za)\/?/,
+      rgx_url = /^https?\:\/\/(?:([\w]+?)\.){1,2}(?:com?|org|co\.uk|ex|ca|co\.za|net|ng|com\.ng|gov|mil|biz|info|io|me|dev|ng|mobi|name|edu|nti|aero|jobs|museumco\.za)\/?/,
 
       _clientsObject = null,
 
@@ -773,15 +780,15 @@
                             if(typeof this.close == "function"){
                                 //this.close();
                                 callable.apply(null, [e, url]);
-                                if(win.console){
-                                    win.console.log("Stream Closed!");
+                                if(!!win.console){
+                                    win.console.log("[BeamzerClient]: Server-Sent Event Stream Closed!");
                                 }
                             }
                         }else if(e.target.readyState === EventSource.CONNECTING){
                                 if(!!win.console){
-                                    win.console.log("Stream Connecting...");
+                                    win.console.log("[BeamzerClient]: Server-Sent Event Stream Connecting...");
                                 }
-                                callable.apply(null, [e, url]);
+                                callable.apply(this, [e, url]);
                         }
                     }
                 };
@@ -809,7 +816,10 @@
                  // removing events and their handlers from the global map only
                  if(hasOWnProp.call(eventsMap, event)){
                        delete eventsMap[event];
+                       return true;
                  } 
+
+                 return false;
             }
 
             function readyProxyObserver(event, url, noCall){
@@ -819,6 +829,7 @@
                            events:[],
                            callback:function(e){
                              var _self = this;
+                             e = e || {} // hoisting...
                              _each(eventsMap, function(item, key){ 
                                  if(key.indexOf((e.type || event)) > -1){
                                      if((!noCall) && (key.match(open_or_error) || true)){
@@ -831,16 +842,19 @@
                  }
 
                  proxy = proxyObserverList[url]; 
-                 proxy.events.push(event);  
+
+                 if(proxy && proxy.events && typeof proxy.events.push === 'function') {
+                    proxy.events.push(event);  
+                 }
 
                  return proxy.callback;
             }
 
             function getProxy(url){
                 if(hasOWnProp.call(proxyObserverList, url)){
-                   
                     return proxyObserverList[url];
                 }
+
                 return null;
             }
 
@@ -863,7 +877,7 @@
           if(toString.call(object.constructor) !== _func_obj){
               _each(object,  function(connection, url){
                   _each(evts, function(callback, event){
-                     if(event.indexOf('on') == 0){
+                     if(event.indexOf('on') === 0){
                          _event = event.replace('on', '');
                          if(connection[event] === null)
                             connection[event] = EventsRegistry.readyProxyObserver(_event, url, noCall);
@@ -875,7 +889,7 @@
               });
           }else{
                _each(evts, function(callback, event){
-                   if(event.indexOf('on') == 0){
+                   if(event.indexOf('on') === 0){
                        _event = event.replace('on', '');
                        if(object[event] === null)
                           object[event] = EventsRegistry.readyProxyObserver(_event, url, noCall);
@@ -919,39 +933,88 @@
 
           return function(callback){
               if(typeof callback == "function"){
-                  callback({type:"closed",timestamp:time,urls:urls,closed_connections:num_of_connections_closed});
+                    callback({
+                      type:"closed",
+                      timestamp:time,
+                      urls:urls,
+                      closed_connections:num_of_connections_closed
+                    });
               }
           }
       },
 
       _isEmpty = function(obj){
-           if(typeof obj != "object"){
+           if(typeof obj !== "object"){
               return false;
            }
+
            for(var i in obj){
                if(hasOWnProp.call(obj, i)){
                    return false;
                }
            }
            return true;
-      }, 
+      },
 
       _objectToQuery = function(object, _url, _prefix){
           var query = _url.indexOf("?") == -1 ? "?" : "";
-          if(!object){
-             return "";
+          if(!object || _isEmpty(object)){
+             return _url;
           }
           _each(object, function(qval, qkey){
-              query += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(qval) + "&";
+              if(toString.call(qval) === _arr_obj) {
+                for (var i_qval = 0; i_qval < qval.length; i_qval++){
+                    query += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(qval[i_qval]) + "&";
+                }
+              } else if(typeof qval === 'string') {
+                query += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(qval) + "&";
+              }
           });
-          return _url + (query.length == 1)? "" : (query.replace(/\&$/, ''));
+          return _url + (query.length <= 1)? "" : (query.replace(/\&$/, ''));
+      },
+      
+      _objectToForm = function(object, _prefix){
+         var form = "";
+         if(!object || _isEmpty(object)){
+            return _url;
+         }
+         _each(object, function(qval, qkey){
+             if(qkey === 'retry'){
+                 qval = String(qval)
+             }
+             if(toString.call(qval) === _arr_obj 
+                || toString.call(qval) === _obj_obj) {
+                   if(qkey !== 'target') {
+                        form += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(JSON.stringify(qval)) + "&";
+                   }else{
+                        var sub = _objectToQuery(qval, "", "")
+                        form += sub.replace('?', '');
+                   }
+             } else if(typeof qval === 'string') {
+               form += (_prefix + win.encodeURIComponent(qkey)) + "=" + win.encodeURIComponent(qval) + "&";
+             }
+         });
+         return (form.length == 0)? form : (form.replace(/\&$/, ''));
       },
 
       Clients = function (settings, forceNew){
+
+          if(toString.call(settings) !== _obj_obj){
+            settings = {}
+          }
+
           var url = settings.source || '';
           var params = settings.params || null;
           var options = settings.options || null;
           var connection = null;
+
+          if(url === ''){
+              throw new Error('Cannot connect to stream: URL missing');
+          }
+
+          if(toString.call(url) === _url_obj){
+            url = url.toString();
+          }
 
           if(!rgx_url.exec(url)){
               url = _origin + url;
@@ -972,31 +1035,26 @@
               delete options.crossdomain;
           }
 
-          if(!hasOWnProp.call(connections, url)){
-              connection = new EventSource(url, options);
-          }else{
-              connection = connections[url];
-              if(forceNew === true){
-                  _temp = _disconnect(connection, url);
-                  connection = _temp = null; // free memory
-                  connection = new EventSource(url, options);
-                  _installEvents(connection, (options === null || !_isEmpty(options)));
-              }
-          } 
+          //setTimeout(function delayConnection() {
 
-          connections[url] = connection; // @TODO check if cyclic referencing exists here later...
+                if(!hasOWnProp.call(connections, url)){
+                    connection = new EventSource(url, options);
+                }else{
+                    connection = connections[url];
+                    if(forceNew === true){
+                        _temp = _disconnect(connection, url);
+                        connection = _temp = null; // free memory
+                        connection = new EventSource(url, options);
+                        _installEvents(connection, (options === null || !_isEmpty(options)));
+                    }
+                } 
+
+                // @TODO check if cyclic referencing exists here later...
+                connections[url] = connection; 
+          //}, 0);
+
           // enforce new 
           return (this === win)? new Clients(settings, forceNew): this;
-      },
-
-      _makeClients = function(settings, forceNew){
-          if(_clientsObject === null){
-               _clientsObject = new Clients(settings);
-          }
-          if(forceNew){
-               //_clientsObject = null;
-               _clientsObject = new Clients(settings, forceNew);
-          }
       };
 
       Clients.prototype.disconnect = function(callback){
@@ -1006,8 +1064,8 @@
           return (interface = null); // free memory
       }
 
-      Clients.prototype.on = function(composite){
-          EventsRegistry.addGlobalHandler(composite);
+      Clients.prototype.on = function(compositeHandlerList){
+          EventsRegistry.addGlobalHandler(compositeHandlerList);
           _installEvents(connections);
       }
 
@@ -1016,6 +1074,12 @@
            EventsRegistry.removeGlobalHandler(evt);
       }
 
+      var _makeClients = function(settings, forceNew){
+        if(_clientsObject === null){
+             _clientsObject = new Clients(settings, forceNew || false);
+        }
+      };
+
       function BeamzerClient(settings){
 
            if(!settings){
@@ -1023,14 +1087,13 @@
            }
         
            this.url = settings.source || "";
-        
-           _makeClients(settings);
 
            if(_instance === null){
                // Singleton
                _instance = {
                     constructor:BeamzerClient,
                     start:function(openCallback, errorCallback, msgCallback){
+                        _makeClients(settings);
                         _clientsObject.on({'open':openCallback,'error':errorCallback,'message':msgCallback});
                     },
                     on:function(event, callback){
@@ -1038,23 +1101,257 @@
                            return;
                        }
                        event = event.replace('on', ''); // hoisting
-                       _clientsObject.on({event:callback});
+                       if(!!_clientsObject){
+                            _clientsObject.on({event:callback});
+                       }else{
+                           throw new Error("Illegal Invocation: Beamzer connection instance doesn't yet exist. try call `start()` first")
+                       }
                     },
                     off:function(event){
-                       _clientsObject.off(event);
+                        if(!!_clientsObject){
+                            _clientsObject.off(event);
+                        }else{
+                            throw new Error("Illegal Invocation: Beamzer connection instance doesn't yet exist. try call `start()` first")
+                        }
                     },
                     newClient:function(settings){
                          forceNew = (typeof(settings.params) == "object" && !_isEmpty(settings.params));
                         _makeClients(settings, forceNew);
                     },
                     stop:function(callback){
-                         _clientsObject.disconnect(callback);
+                        if(!!_clientsObject){
+                            _clientsObject.disconnect(callback);
+                        }else{
+                            throw new Error("Illegal Invocation: Beamzer connection instance doesn't yet exist. try call `start()` first")
+                        }
                     }
                }
            }   
 
            return _instance;
       };
+
+      /**
+       * MERCURE PROTOCOL - Helpers
+       * 
+       * These static methods are for use with the mercure protocol
+       * https://www.github.com/dunglas/mercure
+       * 
+       * - Hub Discovery/Authorization
+       * 
+       * BeamzerClient.serviceDiscoveryAndAuth(['*']).then(function(details){
+       *    
+       *    var beam = new BeamzerClient({
+       *        source:details.hubUrl,
+       *        params:{
+       *            topic: details.topics.map(function(topic){ return topic['@id']; })
+       *        },
+       *        options:{loggingEnabled:true, crossdomain:true, interval:4500}
+       *    })
+       * 
+       *    return beam;
+       * }).then(function(beam){
+       *    document.addEventListener('DOMContentLoaded', function(){
+       *        beam.start(
+       *            function onOpen(e){
+       *            },
+       *            function onError(e){
+       * 
+       *            },
+       *            null
+       *        );
+       *    }, false);
+       * 
+       *    window.addEventListener('beforeunload', function(e){
+       *        beam.stop(function(e){
+       *            navigator.sendBeacon('')
+       *        })
+       *    }, false);
+       * });
+       * 
+       * 
+       * 
+       * 
+       * 
+       * 
+       * 
+       * BeamzerClient.publishToHub({
+       *    retry:4000,
+       *    topic:'https://app.beamzer.co/example/activity/chat',
+       *    data:{
+       *        message:"Hello there...",
+       *        sent_by:'user_96435799292',
+       *        sent_to:'thread_24237291120'
+       *    }
+       * })
+       * 
+       */
+
+      BeamzerClient.publicKey = null;
+
+      BeamzerClient.targets = {}; // targets = {'https://www.example.com':['https://app.beamzer.co/example/default', 'https://app.beamzer.co/example/activity/chat']}
+
+      BeamzerClient.serviceDiscoveryAndAuth = function(targets){
+
+        targets = targets || [ _origin ];
+        
+        var pathname = '/beamzer/discovery/auth';
+        var discoveryAuthUrl = _origin + pathname;
+                
+        return new Promise(function (resolve, reject) {
+
+            var req = ((typeof win.toStaticHTML === 'function') ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest);
+
+            if(typeof req.setRequestHeader === 'function'){
+                req.setRequestHeader('Accept', 'application/ld+json');
+                //req.setRequestHeader('X-Api-Key', String(BeamzerClient.publicKey));
+                req.setRequestHeader('Cache-Control', 'no-transform');
+            }
+
+            req.ontimeout = function(e){
+                reject(e)
+            };
+
+            req.onerror = function(e){
+                reject(e);
+            };
+
+            req.timeout = 8100;
+
+            req.onreadystatechange = function(e){
+
+                var linkHeader = null;
+                var apiKey = null;
+
+                if ((e.type === "readystatechange" && req.readyState === 4)) {
+                    if (req.status === 200 || (req.status >= 300 && req.status < 400)){
+
+                        targetDetails = JSON.parse(req.responseText);
+                        
+                        if(typeof req.getResponseHeader === 'function') {
+                            linkHeader = req.getResponseHeader('Link') || null;
+
+                            apiKey = req.getResponseHeader('X-Beamzer-Public-Key') || null;
+                        }
+
+                        if(linkHeader === null){
+                            linkHeader = '<https://service.beamzer.co/hub>; rel="mercure"';
+                        }
+
+                        BeamzerClient.targets = targetDetails;
+                        BeamzerClient.publicKey = apiKey;
+
+                        resolve({
+                            hubUrl:linkHeader.match(/<([^>]+)>;\s+rel=(?:mercure|"[^"]*mercure[^"]*")/)[1],
+                            topics:BeamzerClient.targets[_origin] || []
+                        })
+                    }
+                }
+            };
+                
+            req.open('GET', _objectToQuery(discoveryAuthUrl, {targets:JSON.stringify(targets)}, ""), true);
+
+            req.send(null);  
+        });
+      };
+
+      BeamzerClient.pingAuthExpiration = function(){
+
+        var expUrl = beamzerOrigin + '/hub/auth/expire';
+
+        return new Promise(function (resolve, reject) {
+            var req = new Image();
+
+            req.onload = function(e){
+                resolve(true)
+            };
+
+            req.onerror = function(e){
+                reject(false)
+            };
+
+            req.src = _objectToQuery({
+                publickey:String(BeamzerClient.publicKey)
+            }, expUrl, "")
+        });
+      };
+
+      BeamzerClient.publishToHub = function(requestData){
+
+        var pathname = '/hub/publish';
+        var hubUrl = beamzerOrigin + pathname;
+
+        requestData = requestData || {
+            target: [ _origin ],
+            data:{title:"Activity Stream", body:"A New Text Stream!"},
+            topic:'default', // https://app.beamzer.co/example/default
+            type:'broadcast',
+            retry:3000,
+            id:'cjld2cjxh0000qzrmn831i7rn' // cuid
+        };
+
+        if((BeamzerClient.targets[_origin] || []).indexOf(requestData.topic || "") === -1){
+            return Promise.reject(new Error('Invalid Entry: topic `'+ requestData.topic +'` supplied is not available for current target'));
+        }
+
+        return new Promise(function (resolve, reject) {
+
+            var req = ((typeof win.toStaticHTML === 'function') ? new XDomainRequest : new XMLHttpRequest);
+            
+
+            if(typeof req.setRequestHeader === 'function'){
+                req.setRequestHeader('Accept', 'application/ld+json')
+                req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                req.setRequestHeader('X-Api-Key', String(BeamzerClient.publicKey));
+            }else{ // {XDomainRequest} can't set headers as the API is missing unlike {XMLHttpRequest}
+                req.headers = {
+                    'content-type': 'application/x-www-form-urlencoded',
+                    'accept': 'application/ld+json',
+                    'origin': _origin.replace(/\/$/, ''),
+                    'x-api-key': String(BeamzerClient.publicKey)
+                };
+            }
+
+            if(hasOWnProp.call(req.prototype, 'withCredentials')) {
+                req.withCredentials = true;
+            }
+
+            req.onerror = function(e){
+                reject(e)
+            }
+
+            req.ontimeout = function(e){
+                reject(e)
+            }
+
+            req.onprogress = function(){}
+
+            if(typeof win.toStaticHTML === 'function') {
+                req.open('POST', _objectToQuery(req.headers, hubUrl, ''), true);
+            }else{
+                req.open('POST', hubUrl, true);
+            }
+
+            req.onreadystatechange = function(e){
+                if ((e.type === "readystatechange" && req.readyState === 4)) {
+                    if (req.status === 200 || req.status === 201){
+
+                        dispatchDetails = JSON.parse(req.responseText);
+                        
+                        resolve({
+                            dispatch:dispatchDetails
+                        })
+                    }
+                }
+            };
+
+            setTimeout(function(){
+                req.send(
+                    _objectToForm(requestData, "")
+                );
+            }, 0);            
+        });
+      }
 
       return BeamzerClient;
 }));

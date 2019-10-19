@@ -1,5 +1,8 @@
 node_modules
+coverage
 .travis.yml
 beamzer.conf.js
-tests
+package-lock.json
+yarn.lock
+test
 *.png
