@@ -1,6 +1,6 @@
 {
   "name": "beamzer-client",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "description": "This wrapper script makes use of the JS polyfill for Server Sent Events OR Server Push",
   "main": "dist/beamzer-client.min.js",
   "standard": {
